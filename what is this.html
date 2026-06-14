@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17!!!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            /* Updated to look inside the imgs/ folder */
+            background-image: url('imgs/BACKGROUND.png'); 
+            background-size: cover;        
+            background-position: center;    
+            background-repeat: no-repeat;  
+            
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* --- Sequential Intro Screen Styles --- */
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #052136;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #intro-screen.fade-out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .intro-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 0 100px;
+        }
+
+        /* Keeps the text block perfectly dead center */
+        .intro-text-wrapper {
+            max-width: 650px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .intro-text {
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 1.5;
+            transition: opacity 0.25s ease; 
+            opacity: 1;
+        }
+
+        .intro-text.text-fade {
+            opacity: 0;
+        }
+
+        /* Fixed to the right side so it never pushes the text plane */
+        .next-btn {
+            position: absolute;
+            right: 60px;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.6;
+            transition: opacity 0.2s, transform 0.2s;
+            padding: 15px;
+        }
+
+        .next-btn:hover {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+
+        /* Completely static right arrow */
+        .arrow-svg {
+            width: 48px;
+            height: 48px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* --- Original Main Content Container --- */
+        #main-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        #main-content.fade-in {
+            opacity: 1;
+        }
+
+        #viewport {
+            perspective: 2500px;
+            width: 100vw;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            image-rendering: -webkit-optimize-contrast; 
+        }
+
+        #book-anchor {
+            position: relative;
+            width: 0px; 
+            height: 520px;
+            transform-style: preserve-3d;
+            transform: rotateX(18deg) translateY(0px) scale(1);
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: zoom-in;
+        }
+
+        #book-anchor.zoomed {
+            transform: rotateX(18deg) translateY(-25px) scale(1.4);
+            cursor: zoom-out;
+        }
+
+        #book-spine {
+            position: absolute;
+            left: -20px; 
+            width: 40px; 
+            height: 520px;
+            background: #000022; 
+            transform-style: preserve-3d;
+            box-shadow: 
+                inset -6px 0 10px rgba(255,255,255,0.08),
+                inset 6px 0 10px rgba(0,0,0,0.6),
+                0 25px 50px rgba(0,0,0,0.6);
+            border-radius: 6px;
+            transform-origin: center center;
+            backface-visibility: hidden; 
+            will-change: transform;
+        }
+
+        .page-sheet {
+            position: absolute;
+            width: 385px; 
+            height: 512px;
+            top: 4px;
+            left: 0;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transform-origin: left center; 
+        }
+
+        .page-sheet.cover-sheet {
+            width: 415px;
+            height: 520px;
+            top: 0;
+            left: -20px;
+            transform-origin: left center;
+        }
+
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; 
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            background-size: 100% 100%; 
+            background-position: center;
+            background-repeat: no-repeat;
+            image-rendering: auto;
+            pointer-events: auto;
+        }
+
+        .cover-sheet .face {
+            width: 395px;
+        }
+        
+        .cover-sheet .front {
+            left: 20px;
+        }
+        
+        .cover-sheet .back {
+            right: 20px;
+        }
+
+        .cover-front {
+            background: #000080;
+            color: rgba(255, 255, 255, 0.9);
+            border-radius: 0 28px 28px 0;
+            box-shadow: 
+                inset 6px 6px 0px rgba(255,255,255,0.12),
+                inset -6px -6px 10px rgba(0,0,0,0.6),
+                1px 0px 0px #00004d,
+                2px 0px 0px #000040,
+                25px 35px 50px rgba(0,0,0,0.65);
+            border-left: 1px solid rgba(0,0,0,0.5);
+        }
+
+        .cover-front::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            right: -6px;
+            width: 8px;
+            height: calc(100% - 8px);
+            background: #00004d;
+            border-radius: 0 4px 4px 0;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.6);
+        }
+
+        .cover-back {
+            background: #000080;
+            color: rgba(255, 255, 255, 0.9);
+            border-radius: 28px 0 0 28px;
+            box-shadow: 
+                inset -6px 5px 0px rgba(255,255,255,0.12),
+                inset 6px -6px 10px rgba(0,0,0,0.6),
+                -1px 0px 0px #00004d,
+                -25px 35px 50px rgba(0,0,0,0.65);
+            border-right: 1px solid rgba(0,0,0,0.5);
+            transform: rotateY(180deg);
+        }
+
+        .paper-front {
+            background: #fdfdfd;
+            border-radius: 0 24px 24px 0;
+            box-shadow: inset 6px 0 12px rgba(0,0,0,0.05), 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .paper-back {
+            background: #fdfdfd;
+            border-radius: 24px 0 0 24px;
+            box-shadow: inset -6px 0 12px rgba(0,0,0,0.05), -2px 2px 5px rgba(0,0,0,0.1);
+            transform: rotateY(180deg);
+        }
+
+        #page-16 {
+            padding: 0px !important;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #page-16 video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 24px 0 0 24px;
+        }
+
+        /* All asset source paths updated to look inside your "imgs" folder */
+        #front-cover-outside { background-image: url('imgs/img-cover-front.png'); }
+        #front-cover-inside  { background-image: url('imgs/img-cover-inside.png'); }
+        
+        #page-1  { background-image: url('imgs/1.png'); }
+        #page-2  { background-image: url('imgs/2.png'); }
+        #page-3  { background-image: url('imgs/3.png'); }
+        #page-4  { background-image: url('imgs/4.png'); }
+        #page-5  { background-image: url('imgs/5.png'); }
+        #page-6  { background-image: url('imgs/6.png'); }
+        #page-7  { background-image: url('imgs/7.png'); }
+        #page-8  { background-image: url('imgs/8.png'); }
+        #page-9  { background-image: url('imgs/9.png'); }
+        #page-10 { background-image: url('imgs/10.png'); }
+        #page-11 { background-image: url('imgs/11.png'); }
+        #page-12 { background-image: url('imgs/12.png'); }
+        #page-13 { background-image: url('imgs/13.png'); }
+        #page-14 { background-image: url('imgs/14.png'); }
+        #page-15 { background-image: url('imgs/15.png'); }
+        
+        #back-cover-inside   { background-image: url('imgs/img-end-paper.png'); }
+        #back-cover-outside  { background-image: url('imgs/img-cover-back.png'); }
+
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="intro-container">
+            <div class="intro-text-wrapper">
+                <div class="intro-text" id="intro-text">hi</div>
+            </div>
+            <button class="next-btn" id="next-btn">
+                <svg class="arrow-svg" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div id="viewport">
+            <div id="book-anchor">
+                
+                <div id="book-spine"></div>
+
+                <div class="page-sheet cover-sheet">
+                    <div class="front face cover-front" id="front-cover-outside"></div>
+                    <div class="back face cover-back" id="front-cover-inside"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-1"></div>
+                    <div class="back face paper-back" id="page-2"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-3"></div>
+                    <div class="back face paper-back" id="page-4"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-5"></div>
+                    <div class="back face paper-back" id="page-6"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-7"></div>
+                    <div class="back face paper-back" id="page-8"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-9"></div>
+                    <div class="back face paper-back" id="page-10"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-11"></div>
+                    <div class="back face paper-back" id="page-12"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-13"></div>
+                    <div class="back face paper-back" id="page-14"></div>
+                </div>
+
+                <div class="page-sheet">
+                    <div class="front face paper-front" id="page-15"></div>
+                    <div class="back face paper-back" id="page-16">
+                        <video id="journal-video" loop muted playsinline>
+                            <source src="imgs/INNER.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+
+                <div class="page-sheet cover-sheet">
+                    <div class="front face paper-front" id="back-cover-outside"></div>
+                    <div class="back face cover-back" id="back-cover-inside" style="border-radius: 28px 0 0 28px;"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sheets = document.querySelectorAll('.page-sheet');
+        const spine = document.getElementById('book-spine');
+        const video = document.getElementById('journal-video');
+        const bookAnchor = document.getElementById('book-anchor');
+        const introScreen = document.getElementById('intro-screen');
+        const nextBtn = document.getElementById('next-btn');
+        const introTextElement = document.getElementById('intro-text');
+        const mainContent = document.getElementById('main-content');
+        
+        let targetPage = 0;   
+        let currentPage = 0;  
+        let isThrottled = false; 
+        let introActive = true; 
+
+        // Sequential message pages array
+        const introMessages = [
+            "hi",
+            "i know this isn't much but i wanted to do at least a little cutesy thing (kasi i'm broke!)",
+            "scroll ka sa mouse to flip thru pages, click to zoom in :)",
+            "hope u enjoy mwehewehew"
+        ];
+        let currentMessageIndex = 0;
+
+        // Handle text transitions and final enter action
+        nextBtn.addEventListener('click', () => {
+            if (currentMessageIndex < introMessages.length - 1) {
+                currentMessageIndex++;
+                
+                // Trigger smooth fade crossfade
+                introTextElement.classList.add('text-fade');
+                setTimeout(() => {
+                    introTextElement.innerText = introMessages[currentMessageIndex];
+                    introTextElement.classList.remove('text-fade');
+                }, 250);
+            } else {
+                // End of text sequencing, bring down screens
+                introActive = false;
+                introScreen.classList.add('fade-out');
+                mainContent.classList.add('fade-in');
+                
+                setTimeout(() => {
+                    introScreen.remove();
+                }, 600);
+            }
+        });
+        
+        bookAnchor.addEventListener('click', () => {
+            if (introActive) return;
+            bookAnchor.classList.toggle('zoomed');
+        });
+
+        window.addEventListener('wheel', (e) => {
+            if (introActive) return; 
+            e.preventDefault();
+            if (isThrottled) return;
+
+            if (e.deltaY > 20 && targetPage < sheets.length) {
+                targetPage++;
+                triggerThrottle();
+            } else if (e.deltaY < -20 && targetPage > 0) {
+                targetPage--;
+                triggerThrottle();
+            }
+        }, { passive: false });
+
+        function triggerThrottle() {
+            isThrottled = true;
+            setTimeout(() => { isThrottled = false; }, 850); 
+        }
+
+        function animateLoop() {
+            let diff = targetPage - currentPage;
+            currentPage += diff * 0.055; 
+
+            const totalSheets = sheets.length;
+
+            sheets.forEach((sheet, index) => {
+                let targetRotation = 0;
+
+                if (currentPage > index) {
+                    if (currentPage > index + 1) {
+                        targetRotation = -180;
+                    } else {
+                        const remainder = currentPage - index;
+                        targetRotation = remainder * -180;
+                    }
+                } else {
+                    targetRotation = 0;
+                }
+
+                let baseZ = -Math.abs(index - currentPage) * 7;
+
+                let angleRad = Math.abs(targetRotation) * Math.PI / 180;
+                let liftOffset = Math.sin(angleRad) * 16;
+
+                if (index === 0) {
+                    let finalZ = baseZ + 5 + liftOffset;
+                    sheet.style.transform = `translateZ(${finalZ}px) rotateY(${targetRotation}deg)`;
+
+                    if (targetRotation < -90) {
+                        sheet.style.zIndex = index;
+                    } else {
+                        sheet.style.zIndex = 500;
+                    }
+                } 
+                else if (index === totalSheets - 1) {
+                    let finalZ = baseZ + 5 + liftOffset;
+                    sheet.style.transform = `translateZ(${finalZ}px) rotateY(${targetRotation}deg)`;
+
+                    if (targetRotation < -90) {
+                        sheet.style.zIndex = 500;
+                    } else {
+                        sheet.style.zIndex = index;
+                    }
+                } 
+                else {
+                    let finalZ = baseZ + liftOffset;
+                    sheet.style.transform = `translateZ(${finalZ}px) rotateY(${targetRotation}deg)`;
+
+                    if (targetRotation < -90) {
+                        sheet.style.zIndex = index;
+                    } else {
+                        sheet.style.zIndex = (totalSheets - index) * 20;
+                    }
+                }
+            });
+
+            if (spine) {
+                let spineRot = (currentPage / totalSheets) * -180 + 90;
+                spine.style.transform = `rotateY(${spineRot * 0.1}deg)`;
+            }
+
+            if (video) {
+                if (currentPage >= 8 && !introActive) {
+                    if (video.paused) video.play().catch(err => console.log("System idle"));
+                } else {
+                    if (!video.paused) video.pause();
+                }
+            }
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        animateLoop();
+    </script>
+</body>
+</html>
